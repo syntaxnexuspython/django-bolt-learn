@@ -10,6 +10,10 @@ from asgiref.sync import sync_to_async
 
 api = BoltAPI()
 
+@api.get('/')
+async def root():
+    return JSON({"hello": "world"})
+
 
 @api.post("/products", tags=["Product"])
 async def create_product(product: ProductSchema) -> ProductResponseSchema:
