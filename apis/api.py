@@ -1,5 +1,10 @@
 from django_bolt import BoltAPI, JSON
-from .schemas import ProductSchema, ProductResponseSchema, OrderProductSchema, OrderResponseSchema
+from .schemas import (
+    ProductSchema,
+    ProductResponseSchema,
+    OrderProductSchema,
+    OrderResponseSchema,
+)
 from .models import Product, Order
 from asgiref.sync import sync_to_async
 
@@ -73,20 +78,24 @@ async def create_order(order: OrderProductSchema) -> OrderProductSchema:
             product_id=order.product_id,
             quantity=order.quantity,
             user_id=order.user_id,
+            price=order.price,
         )
         return OrderProductSchema(
             product_id=order.product_id,
             quantity=order.quantity,
             user_id=order.user_id,
+            price=order.price,
         )
     except Exception as e:
         return JSON({"error": str(e)})
 
 
 @api.get("/orders/users/{user_id}", tags=["Order"])
-async def get_orders(user_id:int) -> list[OrderResponseSchema]:
+async def get_orders(user_id: int) -> list[OrderResponseSchema]:
     try:
-        orders = await sync_to_async(list)(Order.objects.select_related("user", "product").filter(user_id=user_id))
+        orders = await sync_to_async(list)(
+            Order.objects.select_related("user", "product").filter(user_id=user_id)
+        )
         return [
             OrderResponseSchema(
                 id=order.id,
@@ -98,6 +107,7 @@ async def get_orders(user_id:int) -> list[OrderResponseSchema]:
                     "user_id": order.product.user_id,
                 },
                 product_id=order.product_id,
+                price=order.price,
                 quantity=order.quantity,
                 user_id=order.user_id,
                 user={"username": order.user.username, "email": order.user.email},
@@ -110,9 +120,11 @@ async def get_orders(user_id:int) -> list[OrderResponseSchema]:
 
 
 @api.get("/orders/{order_id}", tags=["Order"])
-async def get_order(order_id:int) -> OrderResponseSchema:
+async def get_order(order_id: int) -> OrderResponseSchema:
     try:
-        order = await Order.objects.prefetch_related("user", "product").aget(id=order_id)
+        order = await Order.objects.prefetch_related("user", "product").aget(
+            id=order_id
+        )
         return OrderResponseSchema(
             id=order.id,
             product={
@@ -123,6 +135,7 @@ async def get_order(order_id:int) -> OrderResponseSchema:
                 "user_id": order.product.user_id,
             },
             product_id=order.product_id,
+            price=order.price,
             quantity=order.quantity,
             user_id=order.user_id,
             user={"username": order.user.username, "email": order.user.email},

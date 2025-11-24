@@ -19,6 +19,7 @@ class OrderProductSchema(msgspec.Struct):
     product_id: int
     quantity: int
     user_id:int
+    price: float
 
 class OrderResponseSchema(OrderProductSchema):
     id: int
